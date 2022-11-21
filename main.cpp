@@ -42,9 +42,41 @@ void pre_auton(void) {
   ShootSolenoid.set(false);
   TranSolenoid.set(true);
   Drivetrain.setHeading(0, degrees);
-
 }
 
+void shoot(){
+  Flywheel.spin(forward);
+  wait(4, sec);
+  ShootSolenoid.set(true);
+  wait(0.5, sec);
+  ShootSolenoid.set(false);
+  wait(4, sec);
+  Flywheel.stop();
+}
+
+void shootOnce(){
+  Flywheel.spin(forward, 100, percent);
+  wait(4, sec);
+  ShootSolenoid.set(true);
+  wait(0.5, sec);
+}
+
+void shootTwice(){
+  Flywheel.spin(forward);
+  wait(4, sec);
+  ShootSolenoid.set(true);
+  wait(0.5, sec);
+  ShootSolenoid.set(false);
+  Flywheel.setVelocity(85, percent);
+  Drivetrain.turnToHeading(15, degrees);
+  Drivetrain.stop();
+  wait(4, sec);
+  ShootSolenoid.set(true);
+  wait(0.5, sec);
+  ShootSolenoid.set(false);
+  wait(1, sec);
+  Flywheel.stop();
+}
   // All activities that occur before the competition starts
   // Example: clearing encoders, setting servo positions, ...
 
@@ -59,31 +91,24 @@ void pre_auton(void) {
 /*---------------------------------------------------------------------------*/
 
 void autonomous(void) {
-    Drivetrain.setDriveVelocity(50, percent);
-    Drivetrain.setTurnVelocity(20, percent);
-    Flywheel.setVelocity(200, percent);
-    Intake.setVelocity(150,percent);
-    Flywheel.spin(forward);
-    wait(4, sec);
-    ShootSolenoid.set(true);
-    wait(0.5, sec);
-    ShootSolenoid.set(false);
-    wait(4, sec);
-    ShootSolenoid.set(true);
-    wait(0.5, sec);
-    ShootSolenoid.set(false);
-    wait(1, sec);
-    Flywheel.stop();
-    Drivetrain.driveFor(forward, 10, inches);
-    wait(1, sec);
-    Drivetrain.turnToHeading(-60, degrees);
-    Intake.spin(forward);
-    wait(1, sec);
-    Drivetrain.setDriveVelocity(75, percent);
-    Drivetrain.driveFor(forward, 40, inches);
-    Intake.stop();
-    Drivetrain.turnToHeading(40, degrees);
-
+  Drivetrain.setDriveVelocity(50, percent);
+  Drivetrain.setTurnVelocity(5, percent);
+  Flywheel.setVelocity(90, percent);
+  Intake.setVelocity(200, percent);
+  Drivetrain.driveFor(forward, 3.5, inches, true);
+  Inertials.calibrate();
+  Drivetrain.turnToHeading(16, degrees);
+  Drivetrain.stop();
+  wait(1, sec);
+  shootTwice();
+  Flywheel.stop();
+}
+void autoPreloaded(void) {
+  Drivetrain.setDriveVelocity(50, percent);
+  Drivetrain.setTurnVelocity(20, percent);
+  Flywheel.setVelocity(200, percent);
+  Intake.setVelocity(150,percent);
+  wait(1, sec);
   // ..........................................................................
   // Insert autonomous user code here.
   // ..........................................................................
@@ -99,9 +124,8 @@ void autonomous(void) {
 /*  You must modify the code to add your own robot specific commands here.   */
 /*---------------------------------------------------------------------------*/
 
+int speed = 100;
 void usercontrol(void) {
-  int speed = 100;
-  Intake.setVelocity(100, percent);
   Drivetrain.setDriveVelocity(100, percent);
   Drivetrain.setTurnVelocity(100, percent);
   Flywheel.setVelocity(200, percent);
@@ -114,14 +138,15 @@ void usercontrol(void) {
   if(Controller1.ButtonL1.pressing()){
     TranSolenoid.set(true);
   }else if(Controller1.ButtonR1.pressing()){
-      TranSolenoid.set(false);
+    TranSolenoid.set(false);
   }else{
   }
   if(Controller1.ButtonL2.pressing()){
     ShootSolenoid.set(true);
   }else if(Controller1.ButtonR2.pressing()){
-      ShootSolenoid.set(false);
+    ShootSolenoid.set(false);
   }else{
+
   }
   if(Controller1.ButtonX.pressing()){
     Intake.spin(forward);
@@ -130,19 +155,12 @@ void usercontrol(void) {
   }else{ 
   }
   if(Controller1.ButtonUp.pressing()){
-    Flywheel.spin(forward);
- 
-  }else if(Controller1.ButtonRight.pressing()){
-    speed = speed+20;
-    Flywheel.setVelocity(speed, percent);
-  }else if(Controller1.ButtonLeft.pressing()){
-    speed = speed-20;
-    Flywheel.setVelocity(speed, percent);
+  Flywheel.spin(forward);
   }else if(Controller1.ButtonDown.pressing()){
-    Flywheel.stop();
-
-    }
-  }  
+  Flywheel.stop();
+  }else{
+  }
+}
     // This is the main execution loop for the user control program.
     // Each time through the loop your program should update motor + servo
     // values based on feedback from the joysticks.
@@ -160,14 +178,11 @@ void usercontrol(void) {
 // Main will set up the competition functions and callbacks.
 //
 int main() {
-
   // Set up callbacks for autonomous and driver control periods.
   Competition.autonomous(autonomous);
   Competition.drivercontrol(usercontrol);
-
   // Run the pre-autonomous function.
   pre_auton();
-
   // Prevent main from exiting with an infinite loop.
   while (true) {
     wait(100, msec);
