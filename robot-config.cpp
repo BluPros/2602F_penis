@@ -26,8 +26,9 @@ motor_group Flywheel = motor_group(FlywheelRight, FlywheelLeft);
 
 digital_out TranSolenoid = digital_out(Brain.ThreeWirePort.G);
 digital_out ShootSolenoid = digital_out(Brain.ThreeWirePort.H);
-inertial DrivetrainInertial = inertial(PORT8);
-smartdrive Drivetrain = smartdrive(LeftDriveSmart, RightDriveSmart, DrivetrainInertial, 319.19, 320, 40, mm, 1);
+inertial Inertials = inertial(PORT8);
+smartdrive Drivetrain = smartdrive(LeftDriveSmart, RightDriveSmart, Inertials, 319.19, 320, 40, mm, 1);
+
 // VEXcode generated functions
 // define variable for remote controller enable/disable
 bool RemoteControlCodeEnabled = true;
@@ -36,7 +37,7 @@ bool DrivetrainLNeedsToBeStopped_Controller1 = true;
 bool DrivetrainRNeedsToBeStopped_Controller1 = true;
 
 // define a task that will handle monitoring inputs from Controller1
-int rc_auto_loop_callback_Controller1() {
+int rc_auto_loop_function_Controller1() {
   // process the controller input every 20 milliseconds
   // update the motors based on the input values
   while(true) {
@@ -46,6 +47,7 @@ int rc_auto_loop_callback_Controller1() {
       // right = Axis2
       int drivetrainLeftSideSpeed = Controller1.Axis3.position();
       int drivetrainRightSideSpeed = Controller1.Axis2.position();
+      
       // check if the value is inside of the deadband range
       if (drivetrainLeftSideSpeed < 5 && drivetrainLeftSideSpeed > -5) {
         // check if the left motor has already been stopped
@@ -56,7 +58,7 @@ int rc_auto_loop_callback_Controller1() {
           DrivetrainLNeedsToBeStopped_Controller1 = false;
         }
       } else {
-        // reset the toggle so that the deadband code knows to stop the left motor next time the input is in the deadband range
+        // reset the toggle so that the deadband code knows to stop the left motor nexttime the input is in the deadband range
         DrivetrainLNeedsToBeStopped_Controller1 = true;
       }
       // check if the value is inside of the deadband range
@@ -72,6 +74,7 @@ int rc_auto_loop_callback_Controller1() {
         // reset the toggle so that the deadband code knows to stop the right motor next time the input is in the deadband range
         DrivetrainRNeedsToBeStopped_Controller1 = true;
       }
+      
       // only tell the left drive motor to spin if the values are not in the deadband range
       if (DrivetrainLNeedsToBeStopped_Controller1) {
         LeftDriveSmart.setVelocity(drivetrainLeftSideSpeed, percent);
@@ -90,10 +93,25 @@ int rc_auto_loop_callback_Controller1() {
 }
 
 /**
- * Used to initialize code/tasks/devices added using tools in VEXcode Text.
+ * Used to initialize code/tasks/devices added using tools in VEXcode Pro.
  * 
  * This should be called at the start of your int main function.
  */
 void vexcodeInit( void ) {
-  task rc_auto_loop_task_Controller1(rc_auto_loop_callback_Controller1);
+  Brain.Screen.print("Device initialization...");
+  Brain.Screen.setCursor(2, 1);
+  // calibrate the drivetrain Inertial
+  wait(200, msec);
+  Inertials.calibrate();
+  Brain.Screen.print("Calibrating Inertial for Drivetrain");
+  // wait for the Inertial calibration process to finish
+  while (Inertials.isCalibrating()) {
+    wait(25, msec);
+  }
+  // reset the screen now that the calibration is complete
+  Brain.Screen.clearScreen();
+  Brain.Screen.setCursor(1,1);
+  task rc_auto_loop_task_Controller1(rc_auto_loop_function_Controller1);
+  wait(50, msec);
+  Brain.Screen.clearScreen();
 }
