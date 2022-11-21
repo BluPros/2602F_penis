@@ -59,23 +59,7 @@ void shootOnce(){
   wait(4, sec);
   ShootSolenoid.set(true);
   wait(0.5, sec);
-}
-
-void shootTwice(){
-  Flywheel.spin(forward);
-  wait(4, sec);
-  ShootSolenoid.set(true);
-  wait(0.5, sec);
   ShootSolenoid.set(false);
-  Flywheel.setVelocity(85, percent);
-  Drivetrain.turnToHeading(15, degrees);
-  Drivetrain.stop();
-  wait(4, sec);
-  ShootSolenoid.set(true);
-  wait(0.5, sec);
-  ShootSolenoid.set(false);
-  wait(1, sec);
-  Flywheel.stop();
 }
   // All activities that occur before the competition starts
   // Example: clearing encoders, setting servo positions, ...
@@ -91,17 +75,19 @@ void shootTwice(){
 /*---------------------------------------------------------------------------*/
 
 void autonomous(void) {
-  Drivetrain.setDriveVelocity(50, percent);
+  Drivetrain.setHeading(0, degrees);
+  Drivetrain.setDriveVelocity(15, percent);
   Drivetrain.setTurnVelocity(5, percent);
-  Flywheel.setVelocity(90, percent);
-  Intake.setVelocity(200, percent);
-  Drivetrain.driveFor(forward, 3.5, inches, true);
-  Inertials.calibrate();
-  Drivetrain.turnToHeading(16, degrees);
+  Flywheel.setVelocity(100, percent);
+  Intake.setVelocity(100, percent);
+  Drivetrain.driveFor(forward, 3.5, inches);
+  Drivetrain.turnToHeading(-20, degrees);
   Drivetrain.stop();
-  wait(1, sec);
-  shootTwice();
+  shootOnce();
+  Drivetrain.turnToHeading(-18.5, degrees);
+  shootOnce();
   Flywheel.stop();
+
 }
 void autoPreloaded(void) {
   Drivetrain.setDriveVelocity(50, percent);
